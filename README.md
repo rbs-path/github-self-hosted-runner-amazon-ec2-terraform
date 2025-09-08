@@ -6,7 +6,10 @@
 
 This repository contains Terraform infrastructure code to deploy scalable, self-hosted GitHub Actions runners on Amazon EC2 instances. The solution provides automated runner provisioning, lifecycle management, and secure deregistration using AWS Auto Scaling Groups, Lambda functions, and CloudWatch logging.
 
-For a comprehensive step-by-step guide with detailed explanations, please refer to the complete blog post: [Build Secure GitHub Self-Hosted Runners on Amazon EC2 with Terraform](https://skundunotes.com/2025/09/02/build-secure-github-self-hosted-runners-on-amazon-ec2-with-terraform/).
+## Related Blog Posts
+
+- [Build Secure GitHub Self-Hosted Runners on Amazon EC2 with Terraform](https://skundunotes.com/2025/09/02/build-secure-github-self-hosted-runners-on-amazon-ec2-with-terraform/) - Registration process
+- [Automated GitHub Self-Hosted Runner Cleanup: Lambda Functions and Auto Scaling Lifecycle Hooks](https://skundunotes.com/2025/09/07/automated-github-self-hosted-runner-cleanup-lambda-functions-and-auto-scaling-lifecycle-hooks/) - Deregistration process
 
 ## Table of Contents
 
@@ -30,7 +33,7 @@ For a comprehensive step-by-step guide with detailed explanations, please refer 
 - **Network Security**: Runs in private subnets with NAT Gateway for outbound internet access
 - **Encryption**: KMS encryption for secrets, CloudWatch logs, EFS storage, SNS topics, and Lambda functions
 - **Performance Optimization**: EFS with tuned NFS parameters and Lambda layer for reduced cold start times
-- **Cost Optimization**: EFS storage for shared runner workspace and dependency caching to reduce startup time
+- **Shared Storage**: EFS storage for shared runner workspace and dependency caching
 
 ## Architecture
 
@@ -43,7 +46,7 @@ The solution deploys:
 - **SNS Topic** for lifecycle event notifications with KMS encryption
 - **Lambda function** for automated runner deregistration via GitHub API
 - **Lambda Layer** with PyJWT and cryptography dependencies for optimized performance
-- **Dead Letter Queue** for Lambda error handling and retry mechanisms
+- **Dead Letter Queue** for Lambda error handling
 - **EFS file system** for shared runner workspace storage with optimized NFS parameters
 - **CloudWatch log groups** for unified lifecycle logging with structured format
 - **Secrets Manager** for secure GitHub App credentials storage
@@ -157,6 +160,7 @@ The infrastructure can be customized by modifying the default values in `variabl
 - Check Auto Scaling Group events in AWS Console
 - Verify VPC and subnet configuration
 - Ensure IAM roles have necessary permissions
+- Check CloudWatch logs in `/{name}/lifecycle/{instance-id}/registration` log stream for detailed startup errors
 - Review user data script execution in EC2 instance logs
 
 #### Lambda Function Errors
