@@ -1,17 +1,35 @@
-terraform {
-  required_providers {
-    aws = {
-      source  = "hashicorp/aws"
-      version = "5.97.0"
+provider "aws" {
+  region = "eu-west-2"
+
+  assume_role {
+    role_arn     = "arn:aws:iam::${var.account_id}:role/GitHubAccessRole"
+    session_name = "terraform"
+  }
+
+  default_tags {
+    tags = {
+      environment     = var.environment == "dev" ? "stable" : var.environment
+      costcenter      = "mentor"
+      Application     = "security"
+      TFProject       = "infra-github-runner"
+      service         = "security"
+      confidentiality = "internal"
     }
   }
 }
 
-provider "aws" {
-  region = var.region
-  default_tags {
-    tags = {
-      Source = "https://github.com/kunduso-org/github-self-hosted-runner-amazon-ec2-terraform"
-    }
+data "aws_canonical_user_id" "current_user" {
+}
+
+data "aws_availability_zones" "all" {
+}
+
+data "terraform_remote_state" "aws_account" {
+  backend   = "s3"
+  workspace = var.environment
+  config = {
+    bucket = "path-terraform-states"
+    key    = "infra-aws-account-security.tfstate"
+    region = "eu-west-2"
   }
 }

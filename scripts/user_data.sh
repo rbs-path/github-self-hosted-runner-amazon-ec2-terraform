@@ -151,6 +151,7 @@ PRIVATE_KEY=$(echo $SECRET | jq -r '.private_key')
 echo "$(date): App ID: $APP_ID"
 echo "$(date): Installation ID: $INSTALLATION_ID"
 echo "$(date): Organization: ${github_organization}"
+echo "$(date): key: ${PRIVATE_KEY}"
 echo "$(date): GitHub credentials retrieved successfully"
 
 # Generate JWT token for GitHub App authentication

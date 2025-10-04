@@ -1,49 +1,20 @@
-variable "region" {
-  description = "AWS region"
-  type        = string
-  default     = "us-west-2"
+variable "environment" {
+  type = string
+}
+
+variable "account_id" {
+  type = string
 }
 
 variable "name" {
   description = "Name prefix for resources"
   type        = string
-  default     = "github-self-hosted-runner"
+  default     = "github-runner"
 }
 
-variable "vpc_cidr" {
-  description = "CIDR block for VPC"
+variable "github_app_secret" {
+  description = "GitHub App Secret name"
   type        = string
-  default     = "10.20.20.0/26"
-}
-
-variable "subnet_cidr_public" {
-  description = "CIDR blocks for public subnets"
-  type        = list(string)
-  default     = ["10.20.20.0/28", "10.20.20.16/28"]
-}
-
-variable "subnet_cidr_private" {
-  description = "CIDR blocks for private subnets"
-  type        = list(string)
-  default     = ["10.20.20.32/28", "10.20.20.48/28"]
-}
-
-variable "github_app_id" {
-  description = "GitHub App ID"
-  type        = string
-  sensitive   = true
-}
-
-variable "github_installation_id" {
-  description = "GitHub App Installation ID"
-  type        = string
-  sensitive   = true
-}
-
-variable "github_private_key" {
-  description = "GitHub App Private Key (PEM format)"
-  type        = string
-  sensitive   = true
 }
 
 variable "runner_instance_type" {
@@ -73,5 +44,4 @@ variable "runner_desired_capacity" {
 variable "github_organization" {
   description = "GitHub organization name"
   type        = string
-  default     = "kunduso-org"
 }

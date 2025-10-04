@@ -57,16 +57,16 @@ resource "aws_efs_file_system" "github_runner_work" {
 }
 
 resource "aws_efs_mount_target" "github_runner_work" {
-  count           = length(module.vpc.private_subnets)
+  count           = length(data.terraform_remote_state.aws_account.outputs.hub_vpc_private_subnet_ids)
   file_system_id  = aws_efs_file_system.github_runner_work.id
-  subnet_id       = module.vpc.private_subnets[count.index].id
+  subnet_id       = data.terraform_remote_state.aws_account.outputs.hub_vpc_private_subnet_ids[count.index]
   security_groups = [aws_security_group.efs.id]
 }
 
 resource "aws_security_group" "efs" {
   name        = "${var.name}-efs-sg"
   description = "Allow NFS traffic from runner instances"
-  vpc_id      = module.vpc.vpc.id
+  vpc_id      = data.terraform_remote_state.aws_account.outputs.hub_vpc_id
 
   tags = {
     Name = "${var.name}-efs-sg"

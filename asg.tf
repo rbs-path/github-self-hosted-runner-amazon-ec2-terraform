@@ -35,15 +35,7 @@ resource "aws_iam_policy" "github_runner" {
           "secretsmanager:ListSecrets",
           "secretsmanager:DescribeSecret"
         ]
-        Resource = aws_secretsmanager_secret.github_runner_credentials.arn
-      },
-      {
-        Effect = "Allow"
-        Action = [
-          "kms:Decrypt",
-          "kms:DescribeKey"
-        ]
-        Resource = aws_kms_key.github_runner_secrets.arn
+        Resource = data.aws_secretsmanager_secret_version.github_app.arn
       },
       {
         Effect = "Allow"
@@ -66,7 +58,7 @@ resource "aws_iam_policy" "github_runner" {
           "kms:Decrypt",
           "kms:DescribeKey"
         ]
-        Resource = aws_kms_key.encrypt_efs.arn
+        Resource = "arn:aws:kms:eu-west-2:830138816992:key/041268dc-8044-4479-a527-c836c8a81bc9"
       }
     ]
   })
@@ -91,10 +83,11 @@ resource "aws_iam_instance_profile" "github_runner" {
 resource "aws_security_group" "github_runner" {
   name        = "${var.name}-sg"
   description = "Security group for GitHub self-hosted runners"
-  vpc_id      = module.vpc.vpc.id
+  vpc_id      = data.terraform_remote_state.aws_account.outputs.hub_vpc_id
 
   tags = {
-    Name = "${var.name}-sg"
+    Name              = "${var.name}-sg"
+    cactus_exclusions = "public"
   }
 }
 
@@ -130,8 +123,8 @@ resource "aws_launch_template" "github_runner" {
   }
 
   user_data = base64encode(templatefile("${path.module}/scripts/user_data.sh", {
-    secret_name              = aws_secretsmanager_secret.github_runner_credentials.name
-    region                   = var.region
+    secret_name              = data.aws_secretsmanager_secret.github_app.name
+    region                   = "eu-west-2"
     github_organization      = var.github_organization
     efs_dns_name             = aws_efs_file_system.github_runner_work.dns_name
     lifecycle_log_group_name = aws_cloudwatch_log_group.github_runner_lifecycle.name
@@ -147,7 +140,7 @@ resource "aws_launch_template" "github_runner" {
 
 resource "aws_autoscaling_group" "github_runner" {
   name                      = "${var.name}-asg"
-  vpc_zone_identifier       = module.vpc.private_subnets.*.id
+  vpc_zone_identifier       = data.terraform_remote_state.aws_account.outputs.hub_vpc_private_subnet_ids
   target_group_arns         = []
   health_check_type         = "EC2"
   health_check_grace_period = 300
@@ -166,7 +159,6 @@ resource "aws_autoscaling_group" "github_runner" {
       min_healthy_percentage = 0
       skip_matching          = true
     }
-    triggers = ["launch_template"]
   }
 
   tag {

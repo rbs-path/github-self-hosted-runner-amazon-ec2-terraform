@@ -13,10 +13,11 @@ resource "aws_autoscaling_lifecycle_hook" "runner_termination" {
 resource "aws_security_group" "lambda" {
   name        = "${var.name}-lambda-sg"
   description = "Security group for Lambda function"
-  vpc_id      = module.vpc.vpc.id
+  vpc_id      = data.terraform_remote_state.aws_account.outputs.hub_vpc_id
 
   tags = {
-    Name = "${var.name}-lambda-sg"
+    Name              = "${var.name}-lambda-sg"
+    cactus_exclusions = "public"
   }
 }
 
@@ -45,14 +46,14 @@ resource "aws_lambda_function" "runner_deregistration" {
   kms_key_arn                    = aws_kms_key.encrypt_lambda.arn
   environment {
     variables = {
-      SECRET_NAME         = aws_secretsmanager_secret.github_runner_credentials.name
-      REGION              = var.region
+      SECRET_NAME         = data.aws_secretsmanager_secret.github_app.name
+      REGION              = "eu-west-2"
       GITHUB_ORGANIZATION = var.github_organization
       LIFECYCLE_LOG_GROUP = aws_cloudwatch_log_group.github_runner_lifecycle.name
     }
   }
   vpc_config {
-    subnet_ids         = [for subnet in module.vpc.private_subnets : subnet.id]
+    subnet_ids         = data.terraform_remote_state.aws_account.outputs.hub_vpc_private_subnet_ids
     security_group_ids = [aws_security_group.lambda.id]
   }
   tracing_config {
@@ -164,21 +165,25 @@ resource "aws_iam_role_policy" "lambda_deregistration" {
           "logs:PutLogEvents",
           "logs:DescribeLogStreams"
         ]
-        Resource = "arn:aws:logs:${var.region}:*:*"
+        Resource = "arn:aws:logs:eu-west-2:*:*"
       },
       {
         Effect = "Allow"
         Action = [
           "secretsmanager:GetSecretValue"
         ]
-        Resource = [aws_secretsmanager_secret.github_runner_credentials.arn]
+        Resource = [data.aws_secretsmanager_secret_version.github_app.arn]
       },
       {
         Effect = "Allow"
         Action = [
-          "kms:Decrypt"
+          "kms:Decrypt",
+          "kms:Encrypt",
         ]
-        Resource = aws_kms_key.github_runner_secrets.arn
+        Resource = [
+          "arn:aws:kms:eu-west-2:830138816992:key/041268dc-8044-4479-a527-c836c8a81bc9",
+          aws_kms_key.encrypt_lambda.arn,
+        ]
       },
       {
         Effect = "Allow"

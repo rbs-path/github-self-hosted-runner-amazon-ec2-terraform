@@ -64,7 +64,7 @@ data "aws_iam_policy_document" "encrypt_lambda_policy" {
     condition {
       test     = "StringEquals"
       variable = "aws:RequestedRegion"
-      values   = [var.region]
+      values   = ["eu-west-2"]
     }
   }
 }
