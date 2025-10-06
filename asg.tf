@@ -126,6 +126,8 @@ resource "aws_launch_template" "github_runner" {
     secret_name              = data.aws_secretsmanager_secret.github_app.name
     region                   = "eu-west-2"
     github_organization      = var.github_organization
+    app_id                   = var.app_id
+    installation_id          = var.installation_id
     efs_dns_name             = aws_efs_file_system.github_runner_work.dns_name
     lifecycle_log_group_name = aws_cloudwatch_log_group.github_runner_lifecycle.name
   }))

@@ -17,6 +17,16 @@ variable "github_app_secret" {
   type        = string
 }
 
+variable "app_id" {
+  description = "GitHub App ID"
+  type        = string
+}
+
+variable "installation_id" {
+  description = "GitHub App Installation ID"
+  type        = string
+}
+
 variable "runner_instance_type" {
   description = "EC2 instance type for GitHub runners"
   type        = string

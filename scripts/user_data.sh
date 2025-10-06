@@ -142,16 +142,12 @@ echo "$(date): GitHub Actions runner downloaded successfully"
 
 # Get GitHub credentials from Secrets Manager
 echo "$(date): Retrieving GitHub credentials from Secrets Manager"
-SECRET=$(aws secretsmanager get-secret-value --secret-id "${secret_name}" --region "${region}" --query SecretString --output text)
-APP_ID=$(echo $SECRET | jq -r '.app_id')
-INSTALLATION_ID=$(echo $SECRET | jq -r '.installation_id')
-PRIVATE_KEY=$(echo $SECRET | jq -r '.private_key')
+PRIVATE_KEY=$(aws secretsmanager get-secret-value --secret-id "${secret_name}" --region "${region}" --query SecretString --output text)
 
 # For debugging (showing only non-sensitive data)
-echo "$(date): App ID: $APP_ID"
-echo "$(date): Installation ID: $INSTALLATION_ID"
+echo "$(date): App ID: ${app_id}"
+echo "$(date): Installation ID: ${installation_id}"
 echo "$(date): Organization: ${github_organization}"
-echo "$(date): key: ${PRIVATE_KEY}"
 echo "$(date): GitHub credentials retrieved successfully"
 
 # Generate JWT token for GitHub App authentication
@@ -222,8 +218,8 @@ except Exception as e:
 EOFPYTHON
 
 # Pass variables to Python script via environment
-export APP_ID="$APP_ID"
-export INSTALLATION_ID="$INSTALLATION_ID"
+export APP_ID="${app_id}"
+export INSTALLATION_ID="${installation_id}"
 export PRIVATE_KEY="$PRIVATE_KEY"
 
 echo "$(date): Executing JWT generation script..."
