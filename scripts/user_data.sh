@@ -51,7 +51,7 @@ INSTANCE_ID=$(curl -H "X-aws-ec2-metadata-token: $TOKEN" -s http://169.254.169.2
 # Update system
 echo "$(date): Updating system packages"
 apt-get update
-apt-get install -y curl jq awscli python3-pip git binutils nfs-common
+apt-get install -y curl jq awscli python3-pip git binutils nfs-common zip unzip
 pip3 install PyJWT requests
 echo "$(date): System packages updated successfully"
 
@@ -132,6 +132,12 @@ usermod -aG docker runner
 # Fix EFS mount ownership
 chown -R runner:runner /home/runner/_work
 echo "$(date): Runner user created successfully and EFS ownership fixed"
+
+mkdir -p /home/runner/.ssh
+echo "${ssh_private_key}" > /home/runner/.ssh/id_rsa
+ssh-keyscan github.com > /home/runner/.ssh/known_hosts
+chown -R runner:runner /home/runner/.ssh
+chmod 400 /home/runner/.ssh/id_rsa /home/runner/.ssh/known_hosts
 
 # Download GitHub Actions runner
 echo "$(date): Downloading GitHub Actions runner"
@@ -277,7 +283,7 @@ echo "$(date): URL: $ORG_URL"
 echo "$(date): Name: $INSTANCE_ID"
 echo "$(date): Labels: ${region}"
 
-if ! sudo -u runner ./config.sh --url "$ORG_URL" --token "$REG_TOKEN" --name "$INSTANCE_ID" --work /home/runner/_work --labels "${region}" --replace --unattended 2>&1; then
+if ! sudo -u runner ./config.sh --url "$ORG_URL" --token "$REG_TOKEN" --name "$INSTANCE_ID" --work /home/runner/_work --labels "ubuntu-22.04" --runnergroup "${runner_group}" --replace --unattended 2>&1; then
     echo "$(date): ERROR - Runner configuration failed"
     exit 1
 fi

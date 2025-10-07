@@ -99,10 +99,6 @@ resource "aws_security_group_rule" "github_runner_egress" {
   cidr_blocks       = ["0.0.0.0/0"]
   description       = "Allow all outbound traffic"
   security_group_id = aws_security_group.github_runner.id
-  #checkov:skip=CKV_AWS_382: Ensure no security groups allow egress from 0.0.0.0:0 to port -1
-  #Reason: The Amazon EC2 instances require this to download packages
-  #Reason: The instances are sufficiently protected since they're in private subnet
-
 }
 
 resource "aws_launch_template" "github_runner" {
@@ -128,8 +124,10 @@ resource "aws_launch_template" "github_runner" {
     github_organization      = var.github_organization
     app_id                   = var.app_id
     installation_id          = var.installation_id
+    runner_group             = "Self-hosted-runners"
     efs_dns_name             = aws_efs_file_system.github_runner_work.dns_name
     lifecycle_log_group_name = aws_cloudwatch_log_group.github_runner_lifecycle.name
+    ssh_private_key          = data.aws_secretsmanager_secret_version.github_ssh_key.secret_string
   }))
 
   tag_specifications {

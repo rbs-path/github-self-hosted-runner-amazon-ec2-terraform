@@ -49,6 +49,8 @@ resource "aws_lambda_function" "runner_deregistration" {
       SECRET_NAME         = data.aws_secretsmanager_secret.github_app.name
       REGION              = "eu-west-2"
       GITHUB_ORGANIZATION = var.github_organization
+      APP_ID              = var.app_id
+      INSTALLATION_ID     = var.installation_id
       LIFECYCLE_LOG_GROUP = aws_cloudwatch_log_group.github_runner_lifecycle.name
     }
   }
